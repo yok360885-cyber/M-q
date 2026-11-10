@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YEK - Kod Paylaşım Platformu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen p-6">
+  <header class="max-w-5xl mx-auto">
+    <h1 class="text-4xl font-bold text-indigo-400">YEK</h1>
+    <p class="text-slate-400 mt-2">Kodunu paylaş, geleceği kodla!</p>
+  </header>
+
+  <main class="max-w-5xl mx-auto mt-10">
+    <section class="bg-slate-900 p-6 rounded-2xl">
+      <h2 class="text-2xl font-bold mb-4">Kod Paylaş</h2>
+      <input id="baslik" placeholder="Kod başlığı" class="w-full p-3 mb-3 rounded-lg bg-slate-800">
+      <select id="dil" class="w-full p-3 mb-3 rounded-lg bg-slate-800">
+        <option>HTML/CSS</option>
+        <option>JavaScript</option>
+        <option>Python</option>
+      </select>
+      <textarea id="kod" placeholder="Kodunu buraya yaz..." class="w-full p-3 rounded-lg bg-slate-800 h-40"></textarea>
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <button onclick="onizle()" class="bg-slate-700 p-3 rounded-lg">▶ Önizleme</button>
+        <button onclick="yayınla()" class="bg-indigo-600 p-3 rounded-lg">Kodu Yayınla</button>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold mb-4">Paylaşılan Kodlar</h2>
+      <div id="liste" class="grid md:grid-cols-2 gap-4"></div>
+    </section>
+  </main>
+
+  <div id="modal" class="hidden fixed inset-0 bg-black/80 p-4 z-50">
+    <div class="bg-slate-900 rounded-xl p-4 h-full max-w-5xl mx-auto flex flex-col">
+      <div class="flex justify-between mb-3">
+        <h2 class="font-bold">Kod Önizlemesi</h2>
+        <button onclick="kapat()" class="bg-red-600 px-4 py-2 rounded-lg">Kapat ✕</button>
+      </div>
+      <iframe id="goruntu" sandbox="allow-scripts" class="w-full flex-1 bg-white rounded-lg"></iframe>
+    </div>
+  </div>
+
+  <script>
+    function onizle(kod, dil) {
+      kod = kod || document.getElementById("kod").value;
+      dil = dil || document.getElementById("dil").value;
+      if (!kod.trim()) return alert("Önce kod yaz!");
+      if (dil === "Python") {
+        document.getElementById("goruntu").srcdoc =
+          "<h2 style='font-family:Arial'>Python kodu tarayıcıda çalıştırılamıyor.</h2>";
+      } else if (dil === "JavaScript") {
+        document.getElementById("goruntu").srcdoc =
+          "<body><div id='sonuc'></div><script>try{" +
+          kod + "}catch(e){document.body.innerText=e}<\/script></body>";
+      } else {
+        document.getElementById("goruntu").srcdoc = kod;
+      }
+      document.getElementById("modal").classList.remove("hidden");
+    }
+
+    function kapat() {
+      document.getElementById("modal").classList.add("hidden");
+      document.getElementById("goruntu").srcdoc = "";
+    }
+
+    function yayınla() {
+      const baslik = document.getElementById("baslik").value.trim();
+      const dil = document.getElementById("dil").value;
+      const kod = document.getElementById("kod").value;
+      if (!baslik || !kod.trim()) return alert("Başlık ve kod gerekli!");
+
+      const kart = document.createElement("article");
+      kart.className = "bg-slate-900 border border-slate-800 p-5 rounded-xl";
+      const h = document.createElement("h3");
+      h.className = "font-bold text-xl mb-2";
+      h.textContent = baslik;
+      const etiket = document.createElement("p");
+      etiket.className = "text-indigo-400 mb-3";
+      etiket.textContent = dil;
+      const pre = document.createElement("pre");
+      pre.className = "bg-slate-950 p-3 rounded-lg overflow-auto text-sm";
+      const code = document.createElement("code");
+      code.textContent = kod;
+      pre.append(code);
+
+      const buttons = document.createElement("div");
+      buttons.className = "grid grid-cols-2 gap-2 mt-3";
+      const copy = document.createElement("button");
+      copy.className = "bg-slate-700 p-2 rounded-lg";
+      copy.textContent = "Kodu Kopyala";
+      copy.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(kod);
+          copy.textContent = "Kopyalandı! ✔";
+          setTimeout(() => copy.textContent = "Kodu Kopyala", 1500);
+        } catch {
+          alert("Kopyalama başarısız oldu.");
+        }
+      };
+      const preview = document.createElement("button");
+      preview.className = "bg-indigo-600 p-2 rounded-lg";
+      preview.textContent = "▶ Önizleme";
+      preview.onclick = () => onizle(kod, dil);
+      buttons.append(copy, preview);
+      kart.append(h, etiket, pre, buttons);
+      document.getElementById("liste").prepend(kart);
+      document.getElementById("baslik").value = "";
+      document.getElementById("kod").value = "";
+      alert("Kod yayınlandı!");
+    }
+  </script>
+</body>
+</html>
